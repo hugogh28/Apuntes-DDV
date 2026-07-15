@@ -1,0 +1,222 @@
+////////////////////////////////////////////////////////////////////////
+// LIMPIAR LA BASE DE DATOS (BORRA TODOS LOS NODOS Y SUS RELACIONES)
+////////////////////////////////////////////////////////////////////////
+
+MATCH (n)
+DETACH DELETE n;
+
+
+////////////////////////////////////////////////////////////////////////
+// 1. CREACIÓN DE LOS NODOS DE UNIVERSIDADES Y PROFESORES
+////////////////////////////////////////////////////////////////////////
+
+// Universidades
+CREATE (:Universidad {
+  nombre: 'Universidad Rey Juan Carlos',
+  ciudad: 'Mostoles',
+  cp: 28933
+});
+
+CREATE (:Universidad {
+  nombre: 'Universidad Autónoma de Madrid',
+  ciudad: 'Cantoblanco',
+  cp: 28049
+});
+
+// Profesores
+CREATE (:Profesor {DNI: '012345zxcv', nombre: 'Cristian Gómez', area: 'Informatica'});
+CREATE (:Profesor {DNI: '4568398zxcv', nombre: 'Fran Pérez',     area: 'Informatica'});
+CREATE (:Profesor {DNI: '6838634shdw', nombre: 'David Granada',  area: 'Informatica'});
+CREATE (:Profesor {DNI: '499654mlcac', nombre: 'Alba Sanz', area: 'Matematicas'});
+
+// Grados
+UNWIND ['Informatica','Matematicas',
+        'Ciencia e Ingeniería de datos',
+        'Software', 'Videojuegos'] AS gradoNombre
+CREATE (:Grado {nombre: gradoNombre});
+
+// Asignaturas
+UNWIND [
+  {codigo:'INF201', nombre: 'Estructura de Datos'},
+  {codigo:'CD101',  nombre: 'Bases de Datos'},
+  {codigo:'CD102',  nombre: 'Bases de datos No Relacionales'},
+  {codigo:'INF222', nombre: 'Programación'},
+  {codigo:'MAT134', nombre: 'Cálculo'},
+  {codigo:'INF781', nombre: 'DAA'},
+  {codigo:'MAT111', nombre: 'Lógica'}
+] AS asignatura
+CREATE (:Asignatura {
+  codigo: asignatura.codigo,
+  nombre: asignatura.nombre
+});
+
+
+////////////////////////////////////////////////////////////////////////
+// 2. RELACIONES ENTRE PROFESORES, ASIGNATURAS Y UNIVERSIDADES
+////////////////////////////////////////////////////////////////////////
+
+// Cristian pertenece a la URJC
+MATCH (prof:Profesor {DNI: '012345zxcv'})
+MATCH (uni:Universidad {nombre: 'Universidad Rey Juan Carlos'})
+MERGE (prof)-[:PERTENECE_A]->(uni);
+
+// Podemos hacer que los demás también pertenezcan a la URJC
+MATCH (uni:Universidad {nombre: 'Universidad Rey Juan Carlos'})
+MATCH (prof:Profesor)
+WHERE NOT (prof)-[:PERTENECE_A]->()
+MERGE (prof)-[:PERTENECE_A]->(uni);
+
+
+// 2.1.A Asignaturas que pertenecen al grado de Informática
+MATCH (g:Grado {nombre:'Informatica'})
+MATCH (asig:Asignatura)
+WHERE asig.codigo IN ['INF201','INF222','INF781']
+MERGE (asig)-[:PERTENECE_A_GRADO]->(g);
+
+// 2.1.B Asignaturas que pertenecen al grado de Informática
+MATCH (g:Grado {nombre: 'Informatica'})
+UNWIND [{codigo:'INF201'}, {codigo:'INF222'}, {codigo:'INF781'}] AS asignatura
+MATCH (asig:Asignatura {codigo: asignatura.codigo})
+MERGE (asig)-[:PERTENECE_A_GRADO]->(g);
+
+
+// 2.2 (Opcional) Asignaturas de Matemáticas al grado de Matemáticas
+MATCH (g:Grado {nombre:'Matematicas'})
+MATCH (asig:Asignatura)
+WHERE asig.codigo IN ['MAT134','MAT111']
+MERGE (asig)-[:PERTENECE_A_GRADO]->(g);
+
+
+////////////////////////////////////////////////////////////////////////
+// 3. RELACIONES IMPARTE (PROFESOR -> ASIGNATURA)
+////////////////////////////////////////////////////////////////////////
+
+// Cristian imparte BD No Relacionales (CD102) en 2025 grupo TARDE
+MATCH (prof:Profesor {DNI: '012345zxcv'})
+MATCH (asig:Asignatura {codigo: 'CD102'})
+CREATE (prof)-[:IMPARTE {curso: 2025, grupo: 'TARDE'}]->(asig);
+
+// Cristian imparte BD (CD101) en 2025 grupo MAÑANA
+MATCH (prof:Profesor {DNI: '012345zxcv'})
+MATCH (asig:Asignatura {codigo: 'CD101'})
+CREATE (prof)-[:IMPARTE {curso: 2025, grupo: 'MAÑANA'}]->(asig);
+
+// David imparte CD101 e INF222 en 2025 grupo TARDE
+MATCH (prof:Profesor {DNI: '6838634shdw'})
+MATCH (asig1:Asignatura {codigo: 'CD101'})
+MATCH (asig2:Asignatura {codigo: 'INF222'})
+CREATE (prof)-[:IMPARTE {curso: 2025, grupo: 'TARDE'}]->(asig1),
+       (prof)-[:IMPARTE {curso: 2025, grupo: 'TARDE'}]->(asig2);
+
+// Alba imparte MAT134 en 2025
+MATCH (prof:Profesor {DNI: '499654mlcac'})
+MATCH (asig:Asignatura {codigo:'MAT134'})
+CREATE (prof)-[:IMPARTE {curso: 2025, grupo:'UNICO'}]->(asig);
+
+
+////////////////////////////////////////////////////////////////////////
+// 4. PROPIEDADES Y MODIFICACIONES DE NODOS / RELACIONES
+////////////////////////////////////////////////////////////////////////
+
+// Marcar la asignatura INF781 (DAA) como "borrada" o inactiva
+MATCH (a:Asignatura {codigo: 'INF781'})
+SET a.deleted = true;
+
+//Añadir nueva propiedad a todas las asignaturas
+MATCH (a:Asignatura)
+SET a.ects = 6;
+
+
+// Ejemplo de MERGE con ON CREATE / ON MATCH en universidades
+MERGE (uni:Universidad {nombre: 'Universidad Rey Juan Carlos'})
+ON CREATE SET
+  uni.ciudad = 'Mostoles',
+  uni.creado = timestamp()
+ON MATCH SET
+  uni.visto  = timestamp();
+
+//Borrar  propiedad a la asignatura INF781 (DAA)
+MATCH (a:Asignatura {codigo: 'INF781'})
+REMOVE a.deleted;
+
+////////////////////////////////////////////////////////////////////////
+// 5. RELACIONES OFERTA (ASIGNATURA -> UNIVERSIDAD) Y BORRADO
+////////////////////////////////////////////////////////////////////////
+
+// Crear relaciones OFERTA de todas las asignaturas a la URJC
+MATCH (uni:Universidad {nombre: 'Universidad Rey Juan Carlos'})
+MATCH (asig:Asignatura)
+MERGE (asig)-[:OFERTA]->(uni);
+
+// Borrar esas relaciones OFERTA (ejemplo de DELETE de relaciones)
+MATCH (asig:Asignatura)-[rel:OFERTA]->(uni:Universidad {nombre: 'Universidad Rey Juan Carlos'})
+DELETE rel;
+
+
+////////////////////////////////////////////////////////////////////////
+// 6. CONSULTAS DE LAS DIAPOSITIVAS (MATCH / WHERE / PATRONES)
+////////////////////////////////////////////////////////////////////////
+
+// 6.1 Encontrar una asignatura concreta por código
+MATCH (n:Asignatura {codigo: 'CD102'})
+RETURN n;
+
+// 6.2 Profesor -> IMPARTE -> Asignatura
+MATCH (p:Profesor)-[r:IMPARTE]->(a:Asignatura)
+RETURN p, r, a;
+
+// Consultas paginadas para obtener los profesores
+
+MATCH (p:Profesor)
+RETURN p.nombre, p.DNI
+ORDER BY p.nombre
+SKIP 1
+LIMIT 3;
+
+
+MATCH (p:Profesor)
+RETURN p.nombre, p.DNI
+ORDER BY p.nombre
+SKIP 1
+LIMIT 3;
+
+
+// 6.3 Profesor -> IMPARTE -> Asignatura -> PERTENECE_A_GRADO -> Grado
+MATCH (prof:Profesor)-[:IMPARTE]->(asig:Asignatura),
+      (asig)-[:PERTENECE_A_GRADO]->(grado:Grado)
+RETURN prof, asig, grado;
+
+// 6.4 Profesores que han impartido al menos una misma asignatura
+MATCH (p1:Profesor)-[:IMPARTE]->(a:Asignatura)<-[:IMPARTE]-(p2:Profesor)
+WHERE p1 <> p2
+RETURN DISTINCT p1, p2, a;
+
+// 6.5 Profesores que imparten asignaturas en el curso 2025
+MATCH (prof:Profesor)-[imp:IMPARTE]->(asig:Asignatura)
+WHERE imp.curso = 2025
+RETURN prof, imp, asig;
+
+// 6.6 Asignaturas sin profesor
+MATCH (asig:Asignatura)
+WHERE NOT ( (:Profesor)-[:IMPARTE]->(asig) )
+RETURN asig;
+
+// 6.7 Profesores de Matemáticas o Informática (OR)
+MATCH (prof:Profesor)
+WHERE prof.area = 'Matematicas' OR prof.area = 'Informatica'
+RETURN prof;
+
+// 6.8 Profesores de Matemáticas o Humanidades (IN)
+MATCH (prof:Profesor)
+WHERE prof.area IN ['Matematicas', 'Humanidades']
+RETURN prof;
+
+// 6.9 Camino de longitud variable (ejemplo genérico)
+MATCH camino = (p:Profesor)-[:IMPARTE*1..3]->(a:Asignatura)
+RETURN camino;
+
+// 6.10 Asignaturas que son impartidas por al menos 3 profesores distintos
+MATCH (p:Profesor)-[:IMPARTE]->(a:Asignatura)
+WITH a, count(DISTINCT p) AS numProf
+WHERE numProf = 3 
+RETURN a.codigo AS asignatura, numProf;

@@ -1,0 +1,23 @@
+CREATE TABLE tester(
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  salary INTEGER
+);
+
+CREATE TABLE game(
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  genre INTEGER
+);
+
+CREATE TABLE test_info(
+  id INTEGER PRIMARY KEY,
+  tester INTEGER NOT NULL,
+  game INTEGER NOT NULL,
+  time_played INTEGER,
+  puntuation INTEGER,
+  level INTEGER,
+  tester_comments TEXT,
+  FOREIGN KEY(tester) REFERENCES tester(id),
+  FOREIGN KEY(game) REFERENCES game(id)
+);

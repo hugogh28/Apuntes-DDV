@@ -1,0 +1,28 @@
+-- PRIMERO SE CREAN LAS TABLAS, RECORDAR QUE SIEMPRE SE EMPIEZA POR LAS QUE NO TIENEN REFERENCIAS A OTRAS TABLAS
+
+CREATE TABLE IF NOT EXISTS alumnos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL,
+  edad INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS cursos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS matriculas (
+  alumno_id INTEGER NOT NULL,
+  curso_id INTEGER NOT NULL,
+  fecha TEXT NOT NULL DEFAULT (date('now')),
+  PRIMARY KEY (alumno_id, curso_id),
+  FOREIGN KEY (alumno_id) REFERENCES alumnos(id),
+  FOREIGN KEY (curso_id) REFERENCES cursos(id)
+);
+
+
+-- INSERCIÓN DE DATOS EN LAS ANTERIORES TABLAS
+
+INSERT INTO alumnos(nombre, edad) VALUES ('Ana', 20), ('Luis', 22);
+INSERT INTO cursos(nombre) VALUES ('Gestión de Datos en Medios Digitales'), ('Estructura de Datos');
+INSERT INTO matriculas(alumno_id, curso_id) VALUES (1, 1), (2, 2);

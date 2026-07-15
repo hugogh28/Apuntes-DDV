@@ -1,0 +1,216 @@
+SOLUCIONES A LOS EJERCICIOS DEL TEMA 2 DE SQLITE
+
+EJERCICIO 2: ¿Qué tester o testers ganan más?
+
+SOLUCIÓN EJERCICIO 2: 
+	SELECT * FROM tester ORDER BY salary DESC;
+	SELECT * FROM tester WHERE salary=(SELECT MAX(salary) FROM tester); //Aquí lo que se saca primeramente en la consulta anidada es el mayor salario para luego solo buscar el tester(s) con ese salario (que es el máximo)
+
+EJERCICIO 3: ¿Qué tester o testers ganan menos?
+
+	SELECT * FROM tester ORDER BY salary ASC;
+	SELECT * FROM tester WHERE salary=(SELECT MIN(salary) FROM tester); //Aquí lo que se saca primeramente en la consulta anidada es el mayor salario para luego solo buscar el tester(s) con ese salario (que es el mínimo)
+	
+EJERCICIO 4: Sube el sueldo a los que ganan menos hasta 12 €/hora
+
+SOLUCIÓN EJERCICIO 4:
+
+	UPDATE tester
+	SET salary = 12
+	WHERE salary < 12;// Los que estén por debajo se quedan “igualados” a 12.
+
+EJERCICIO 5: ¿Qué tester consiguió la mayor puntuación?
+
+SOLUCIÓN EJERCICIO 5:
+
+	SELECT t.*
+	FROM tester t
+	JOIN test_info ti ON ti.tester = t.id
+	WHERE ti.puntuacion = (SELECT MAX(puntuacion) FROM test_info); // Busco la puntuación máxima en test_info y saco el/los tester que la hicieron.
+
+EJERCICIO 6: Minutos totales trabajados por cada tester (por id)
+
+SOLUCIÓN EJERCICIO 6:
+
+	SELECT tester, SUM(time_play) AS total_minutos
+	FROM test_info
+	GROUP BY tester;
+
+
+// Agrupo por el id del tester y sumo sus minutos.
+
+EJERCICIO 7: Minutos totales por tester (con nombre)
+
+SOLUCIÓN EJERCICIO 7:
+
+	SELECT t.name, SUM(ti.time_play) AS total_minutos
+	FROM tester t
+	JOIN test_info ti ON ti.tester = t.id
+	GROUP BY t.id, t.name;
+
+EJERCICIO 8: ID, nombre y dinero que se le debe según lo trabajado
+
+SOLUCIÓN EJERCICIO 8:
+
+	SELECT
+	  t.id,
+	  t.name,
+	  ROUND( (COALESCE(SUM(ti.time_play),0) / 60.0) * t.salary, 2 ) AS euros_debidos
+	FROM tester t
+	LEFT JOIN test_info ti ON ti.tester = t.id
+	GROUP BY t.id, t.name, t.salary;
+	// time_play está en minutos → lo paso a horas dividiendo entre 60.0
+	// LEFT JOIN para que si alguien no ha hecho tests, salga igual con 0.
+
+EJERCICIO 9: Nombre y sueldo de quienes han probado “League of Legends”, orden alfabético
+
+SOLUCIÓN EJERCICIO 9:
+
+	SELECT DISTINCT t.name, t.salary // DISTINCT para que no se repita si el tester lo ha probado más de una vez.
+	FROM tester t
+	JOIN test_info ti ON ti.tester = t.id
+	JOIN game g ON g.id = ti.game
+	WHERE g.game = 'League of Legends'
+	ORDER BY t.name ASC;
+
+
+EJERCICIO 10: Máxima puntuación de cada tester en cada juego
+
+SOLUCIÓN EJERCICIO 10:
+
+	SELECT
+	  t.name AS tester,
+	  g.game AS juego,
+	  MAX(ti.puntuacion) AS max_puntuacion
+	FROM test_info ti
+	JOIN tester t ON t.id = ti.tester
+	JOIN game g ON g.id = ti.game
+	GROUP BY ti.tester, ti.game;// Agrupo por tester + juego, y me quedo con el MAX.
+
+EJERCICIO 11: Nº de tests por videojuego (de mayor a menor)
+
+SOLUCIÓN EJERCICIO 11:
+
+	SELECT
+	  g.id,
+	  g.game,
+	  COUNT(ti.id) AS num_tests
+	FROM game g
+	LEFT JOIN test_info ti ON ti.game = g.id // LEFT JOIN por si quieres que salgan juegos con 0 tests también.
+	GROUP BY g.id, g.game
+	ORDER BY num_tests DESC;
+
+EJERCICIO 12: Igual que el 11 pero con una columna con todos los comentarios del juego
+
+SOLUCIÓN EJERCICIO 12:
+
+	SELECT
+	  g.id,
+	  g.game,
+	  COUNT(ti.id) AS num_tests,
+	  GROUP_CONCAT(ti.tester_comments, ' | ') AS comentarios/ GROUP_CONCAT junta los comentarios en una sola “línea”.
+	FROM game g
+	LEFT JOIN test_info ti ON ti.game = g.id
+	GROUP BY g.id, g.game
+	ORDER BY num_tests DESC;/
+
+EJERCICIO 13: Media de tiempo por tester + nº total de tests
+
+SOLUCIÓN EJERCICIO 13:
+
+	SELECT
+	  t.id,
+	  t.name,
+	  AVG(ti.time_play) AS media_minutos,
+	  COUNT(ti.id) AS total_tests
+	FROM tester t
+	JOIN test_info ti ON ti.tester = t.id
+	GROUP BY t.id, t.name;
+
+EJERCICIO 14: Del 13, solo los 3 testers con mayor media de tiempo
+
+SOLUCIÓN EJERCICIO 14:
+
+	SELECT
+	  t.id,
+	  t.name,
+	  AVG(ti.time_play) AS media_minutos,
+	  COUNT(ti.id) AS total_tests
+	FROM tester t
+	JOIN test_info ti ON ti.tester = t.id
+	GROUP BY t.id, t.name
+	ORDER BY media_minutos DESC
+	LIMIT 3;
+
+EJERCICIO 15: Juegos de género (1 y 3) y luego (2, 3 y 4)
+
+SOLUCIÓN EJERCICIO 15:
+
+	SELECT game
+	FROM game
+	WHERE genre IN (1, 3);
+
+	SELECT game
+	FROM game
+	WHERE genre IN (2, 3, 4);// Aquí genre es un numerito, así que IN va perfecto.
+
+EJERCICIO 16: Testers que han probado más de un juego distinto (y cuántos)
+
+SOLUCIÓN EJERCICIO 16:
+
+	SELECT
+	  t.id,
+	  t.name,
+	  COUNT(DISTINCT ti.game) AS juegos_distintos
+	FROM tester t
+	JOIN test_info ti ON ti.tester = t.id
+	GROUP BY t.id, t.name
+	HAVING COUNT(DISTINCT ti.game) > 1; // Ojo con el DISTINCT: si no, cuenta tests, no juegos.
+
+EJERCICIO 17: Nombres de testers que han probado un juego del género 2
+
+SOLUCIÓN EJERCICIO 17:
+
+	SELECT DISTINCT t.name
+	FROM tester t
+	JOIN test_info ti ON ti.tester = t.id
+	JOIN game g ON g.id = ti.game
+	WHERE g.genre = 2;
+
+EJERCICIO 18: Testers con los juegos que han probado (incluye testers que no han probado ninguno)
+
+SOLUCIÓN EJERCICIO 18:
+
+	SELECT
+	  t.name AS tester,
+	  g.game AS juego
+	FROM tester t
+	LEFT JOIN test_info ti ON ti.tester = t.id
+	LEFT JOIN game g ON g.id = ti.game
+	ORDER BY t.name, g.game; // Con LEFT JOIN salen también los que no han probado nada (les saldrá NULL en juego).
+
+EJERCICIO 19: Promedio de puntuaciones de juegos probados al menos 3 veces
+
+SOLUCIÓN EJERCICIO 19:
+
+	SELECT
+	  g.game,
+	  AVG(ti.puntuacion) AS media_puntuacion,
+	  COUNT(*) AS num_tests
+	FROM test_info ti
+	JOIN game g ON g.id = ti.game
+	GROUP BY g.id, g.game
+	HAVING COUNT(*) >= 3;// HAVING filtra después del GROUP BY: “solo juegos con 3+ tests”.
+
+EJERCICIO 20: Nombre del tester que ha jugado más horas en total
+
+SOLUCIÓN EJERCICIO 20:
+
+	SELECT
+	  t.name,
+	  SUM(ti.time_play) / 60.0 AS total_horas
+	FROM tester t
+	JOIN test_info ti ON ti.tester = t.id
+	GROUP BY t.id, t.name
+	ORDER BY total_horas DESC
+	LIMIT 1;

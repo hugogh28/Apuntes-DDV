@@ -1,0 +1,133 @@
+
+//SACAR LOS POKEMONS
+for $pokemon in doc("pokedex_ampliada.xml")/pokedex/pokemon  where $pokemon/@generacion > 1  return element pokemon {$pokemon/@generacion, $pokemon/nombre} 
+
+for $pokemon in /pokedex/pokemon return $pokemon
+
+for $pokemon in /pokedex/pokemon where $pokemon/@generacion > 4 return $pokemon
+
+//SACAR SOLO EL NOMBRE DE LOS POKEMONS
+
+for $pokemon in doc("pokedex_ampliada")/pokedex/pokemon  where $pokemon/@generacion > 1  return element pokemon {$pokemon/@generacion, $pokemon/nombre/text()} 
+
+//SACAR LOS DATOS DE LOS POKEMONS DE UNA REGION
+
+let $kanto := /pokedex/pokemon[region="Kanto"]
+return <resumen>
+  <totalKanto>{count($kanto)}</totalKanto>
+  <legendariosKanto>{count($kanto[@legendario="true"])}</legendariosKanto>
+</resumen>
+
+//EMITIR UN INFOME DE MODO QUE SE CLASIFIQUE LOS POKEMON SEGUN EL VALOR DE UNA CONDICION (SI ES UN LEGENDARIO O NO)
+
+for $p in /pokedex/pokemon
+let $rareza := if ($p/@legendario="true") then "Legendario" else "Normal"
+return <entrada id="{data($p/@id)}" rareza="{$rareza}">
+  { $p/nombre }
+</entrada>
+
+
+//AGRUPAR POR TIPO
+
+for $tipo in distinct-values(/pokedex/pokemon/tipos/tipo)
+return
+  <tipo name="{$tipo}">
+    { /pokedex/pokemon[tipos/tipo = $tipo]/nombre
+  }
+  </tipo>
+  
+//AGRUPAR POR TIPO
+ 
+for $tipo in distinct-values(/pokedex/pokemon/tipos/tipo)
+return
+  <tipo name="{$tipo}">
+    {
+      for $p in /pokedex/pokemon[tipos/tipo = $tipo]
+      order by $p/nombre
+      return <pokemon>{data($p/nombre)}</pokemon>
+    }
+  </tipo>
+  
+NOTA: La función data() extrae el valor atómico (El texto entre etiquetas) de ese nodo.
+  
+//AGRUPAR POR TIPO CON GROUP BY Y USANDO EL BUCLE FOR
+
+for $p in /pokedex/pokemon
+for $t in $p/tipos/tipo
+group by $tipo := data($t)
+order by $tipo
+return
+  <tipo name="{$tipo}">
+    { string-join($p/nombre ! data(.), " ") }
+  </tipo>
+
+NOTA: 
+
+---- ! aplica la expresión de la derecha a cada elemento de la secuencia de la izquierda.
+
+---- . significa "el ítem actual" (el nodo/valor en el que estoy).
+
+---- data(.) extrae el valor atómico (El texto entre etiquetas) de ese nodo.
+
+//AGRUPAR POR GENERACION
+
+for $gen in distinct-values(/pokedex/pokemon/@generacion)
+order by xs:integer($gen)
+return
+  <generacion num="{$gen}">
+    { /pokedex/pokemon[@generacion = $gen]/nombre }
+  </generacion>
+  
+//CONTAR CUANTOS POKEMONS APARECEN DADO UN TIPO DETERMINADO
+
+count(/pokedex/pokemon[tipos/tipo = "Planta"])
+
+//CONTAR CUANTOS POKEMONS APARECEN DADO DOS TIPOS DETERMINADOS (TIENEN QUE CUMPLIR QUE TIENEN LOS DOS TIPOS)
+
+count(/pokedex/pokemon[tipos/tipo = "Planta" and tipos/tipo = "Veneno"])
+  
+//INSERTAR POKEMONS
+
+insert node
+  <pokemon id="999" shiny="false" legendario="false" generacion="9">
+    <nombre>Ejemplomon</nombre>
+    <tipos>
+      <tipo>Normal</tipo>
+    </tipos>
+    <nivel>5</nivel>
+    <habilidad oculta="false">Cuerpo Puro</habilidad>
+    <region>Paldea</region>
+    <categoria>Demo</categoria>
+    <altura unidad="m">0.5</altura>
+    <peso unidad="kg">10</peso>
+    <stats>
+      <hp>40</hp><atk>30</atk><def>30</def><spa>30</spa><spd>30</spd><spe>30</spe>
+    </stats>
+  </pokemon>
+into /pokedex
+
+//REEMPLAZAR POKEMONS
+
+replace node /pokedex/pokemon[nombre = "Bulbasaur"][1]
+with
+<pokemon id="002" shiny="false" legendario="false" generacion="1">
+  <nombre>Ivysaur</nombre>
+  <tipos>
+    <tipo>Planta</tipo>
+    <tipo>Veneno</tipo>
+  </tipos>
+  <nivel>16</nivel>
+  <habilidad oculta="false">Espesura</habilidad>
+  <region>Kanto</region>
+  <categoria>Semilla</categoria>
+  <altura unidad="m">1.0</altura>
+  <peso unidad="kg">13.0</peso>
+  <stats>
+    <hp>60</hp><atk>62</atk><def>63</def><spa>80</spa><spd>80</spd><spe>60</spe>
+  </stats>
+</pokemon>
+
+
+//REEMPLAZAR SOLO EL NOMBRE DEL POKEMONS
+replace value of node /pokedex/pokemon[nombre="Ivysaur"][1]/nombre
+with "Venusaur"

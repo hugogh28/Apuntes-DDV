@@ -1,0 +1,270 @@
+
+//Borrar la asignatura Redes con número de creditos 2
+db.asignaturas.deleteOne(
+  { nombre: "Redes", creditos: 2 }
+)
+
+//Otra forma de hacer lo mismo
+db.asignaturas.deleteOne({
+  $and: [
+    { nombre: "Redes" },
+    { creditos: 2 }
+  ]
+})
+
+//Reemplazar la asignatura DAA (OJO: QUE REEMPLAZA TODO EL DOCUMENTO)
+db.asignaturas.replaceOne(
+  { nombre: "DAA" },
+  {
+    nombre: "Diseño y Analisis de Algoritmos",
+    creditos: 4
+  }
+)
+
+//Contar cuántos profesores hay activos e inactivos
+db.profesores.aggregate([
+  {
+    $group: {
+      _id: "$activo",
+      total: { $sum: 1 }
+    }
+  }
+])
+
+//Los 3 profesores más mayores
+db.profesores.aggregate([
+  { $sort: { edad: -1 } },
+  { $limit: 3 }
+])
+
+//Saltar los dos primeros profesores y mostrar el resto
+db.profesores.aggregate([
+  { $skip: 2 }
+])
+
+//Profesores más mayores del 2º al 4º
+db.profesores.aggregate([
+  { $sort: { edad: -1 } },
+  { $skip: 1 },   // saltamos el más mayor
+  { $limit: 3 }   // cogemos los siguientes 3
+])
+
+
+//Codigo postal distintos
+db.profesores.distinct("codigo_postal")
+
+//Asignaturas con profesores activos
+db.profesores.distinct(
+  "asignaturas",
+  { activo: true }
+)
+
+//Profesores activos que imparten BDNoSQL 
+db.profesores.aggregate([
+  {
+    $match: {
+      activo: true,
+      asignaturas: "BD NoSQL"
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      nombre: 1,
+      apellido: 1,
+      asignaturas: 1
+    }
+  }
+])
+
+//Edad media de los profesores
+db.profesores.aggregate([
+  {
+    $group: {
+      _id: null,
+      edad_media: { $avg: "$edad" },
+      edad_minima: { $min: "$edad" },
+      edad_maxima: { $max: "$edad" }
+    }
+  }
+])
+
+//Obtener solo los profesores activos
+db.profesores.aggregate([
+  {
+    $match: { activo: true }
+  },
+  {
+    $project: {
+      _id: 0,
+      nombre: 1,
+      apellido: 1,
+      edad: 1
+    }
+  }
+])
+
+//Profesores mayores de 30 años, ordenados por edad descendente
+db.profesores.aggregate([
+  {
+    $match: { edad: { $gt: 30 } }
+  },
+  {
+    $sort: { edad: -1 }
+  },
+  {
+    $project: {
+      _id: 0,
+      nombre: 1,
+      apellido: 1,
+      edad: 1
+    }
+  }
+])
+
+//Número de profesores por codigo postal
+db.profesores.aggregate([
+  {
+    $group: {
+      _id: "$codigo_postal",
+      total_profesores: { $sum: 1 }
+    }
+  },
+  {
+    $sort: { total_profesores: -1 }
+  }
+])
+
+//Mostrar cada asignatura impartida por profesores, una por una
+db.profesores.aggregate([
+  { $unwind: "$asignaturas" },
+  {
+    $project: {
+      _id: 0,
+      nombre: 1,
+      apellido: 1,
+      asignatura: "$asignaturas"
+    }
+  }
+])
+
+//Profesores con más de una asignatura
+db.profesores.aggregate([
+  {
+    $project: {
+      _id: 0,
+      nombre: 1,
+      apellido: 1,
+      num_asignaturas: { $size: "$asignaturas" }
+    }
+  },
+  {
+    $match: {
+      num_asignaturas: { $gt: 1 }
+    }
+  }
+])
+
+//Informe de profesores y asignaturas (Combinación LEFT-JOIN)
+db.profesores.aggregate([
+  { $unwind: "$asignaturas" },
+  {
+    $lookup: {
+      from: "asignaturas",
+      localField: "asignaturas",
+      foreignField: "nombre",
+      as: "datos_asignatura"
+    }
+  },
+  { $unwind: "$datos_asignatura" },
+  {
+    $project: {
+      _id: 0,
+      profesor: { $concat: ["$nombre", " ", "$apellido"] },
+      asignatura: "$asignaturas",
+      creditos: "$datos_asignatura.creditos",
+      curso: "$datos_asignatura.curso"
+    }
+  }
+])
+
+//ASIGNATURAS QUE NO DA NINGUN PROFESOR
+db.asignaturas.aggregate([
+  {
+    $lookup: {
+      from: "profesores",
+      localField: "nombre",
+      foreignField: "asignaturas",
+      as: "profesores_que_la_imparten"
+    }
+  },
+  {
+    $match: {
+      profesores_que_la_imparten: { $eq: [] }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      nombre: 1,
+      curso: 1,
+      creditos: 1
+    }
+  }
+])
+
+//Agrupación de profesores por edad
+db.profesores.aggregate([
+  {
+    $bucket: {
+      groupBy: "$edad",
+      boundaries: [0, 30, 40, 50, 100],
+      default: "Otros",
+      output: {
+        total_profesores: { $sum: 1 },
+        nombres: { $push: "$nombre" }
+      }
+    }
+  }
+])
+
+//Agrupacion de asignaturas por número de creditos
+db.asignaturas.aggregate([
+  {
+    $bucket: {
+      groupBy: "$creditos",
+      boundaries: [0, 3, 5, 7],
+      default: "Otros",
+      output: {
+        total_asignaturas: { $sum: 1 },
+        nombres: { $push: "$nombre" }
+      }
+    }
+  }
+])
+
+
+//INDICES
+
+db.profesores.createIndex({ apellido: 1 })
+
+db.profesores.createIndex({ apellido: 1, edad: -1 })
+
+db.profesores.createIndex(
+  { codigo_postal: 1 },
+  { sparse: true }
+)
+
+Consultas para saber si esta haciendo uso de los indices
+
+db.profesores.find({ apellido: "Pérez" }).explain("executionStats")
+
+db.profesores.find({ apellido: "Pérez", edad: 32 }).explain("executionStats")
+
+db.profesores.find({ edad: 32 }).explain("executionStats")
+
+db.profesores.find({ codigo_postal: "28001" }).explain("executionStats")
+
+db.profesores.find({ activo: true }).explain("executionStats")
+
+db.profesores.getIndexes()

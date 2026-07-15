@@ -1,0 +1,33 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+int main (){
+    srand (time(NULL));
+
+    const int VECTOR_SIZE = rand()%50 + 1;
+
+    int* vector1 = (int*) malloc (sizeof(int)*VECTOR_SIZE);
+    int* vector2 = (int*) malloc (sizeof(int)*VECTOR_SIZE);
+    int* result = (int*) malloc (sizeof(int)*VECTOR_SIZE);
+
+    for (size_t i=0;i<VECTOR_SIZE; i++){
+        vector1[i]=rand()%100;
+        vector2[i]=rand()%100;
+    }
+
+    for (size_t i=0;i<VECTOR_SIZE; i++){
+        result[i] = vector1[i] + vector2[i];
+    }
+
+    for (size_t i=0;i<VECTOR_SIZE; i++){
+        printf("result[%lu] = vector1[%lu] + vector2[%lu] = %d + %d = %d\n", i, i, i, vector1[i], vector2[i], result[i]);
+    }
+
+    free(vector1);
+    free(vector2);
+    free(result);
+    vector1=vector2=result=NULL;
+
+    return EXIT_SUCCESS;
+}

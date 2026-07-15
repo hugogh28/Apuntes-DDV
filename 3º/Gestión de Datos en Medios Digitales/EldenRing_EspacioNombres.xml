@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Contexto de Elden Ring en el que mezclamos dos “vocabularios” distintos en el mismo XML, ya que ambos podrían usar etiquetas como <name> o <id>, así que usamos namespaces para no confundirlos
+     1) Datos de personajes (pj)
+     2) Datos de objetos del juego (obj)
+     -->
+
+<eldenRingData
+  xmlns:pj="http://ejemplo.com/eldenring/personajes"
+  xmlns:obj="http://ejemplo.com/eldenring/objetos">
+
+  <!-- Personajes -->
+  <pj:character>
+    <pj:id>boss_001</pj:id>
+    <pj:name>Malenia, Blade of Miquella</pj:name>
+    <pj:type>Boss</pj:type>
+    <pj:location>Elphael, Brace of the Haligtree</pj:location>
+  </pj:character>
+
+  <pj:character>
+    <pj:id>npc_014</pj:id>
+    <pj:name>Ranni the Witch</pj:name>
+    <pj:type>NPC</pj:type>
+    <pj:location>Ranni's Rise</pj:location>
+  </pj:character>
+
+  <!-- Objetos -->
+  <obj:item>
+    <obj:id>wpn_102</obj:id>
+    <obj:name>Rivers of Blood</obj:name>
+    <obj:category>Weapon</obj:category>
+  </obj:item>
+
+  <obj:item>
+    <obj:id>itm_210</obj:id>
+    <obj:name>Flask of Crimson Tears</obj:name>
+    <obj:category>Consumable</obj:category>
+  </obj:item>
+
+</eldenRingData>

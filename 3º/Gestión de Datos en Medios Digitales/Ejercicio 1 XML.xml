@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<capitulo serie="Los Simpsons">
+  <escenas>
+    <escena id="1">
+      <localizacion>Casa familiar</localizacion>
+      <personajes>
+        <personaje>Lisa</personaje>
+        <personaje>Maggie</personaje>
+        <personaje>Bart</personaje>
+      </personajes>
+      <duracion unidad="segundos">20</duracion>
+    </escena>
+
+    <escena id="2">
+      <localizacion>Taberna de Moe</localizacion>
+      <personajes>
+        <personaje>Homer</personaje>
+        <personaje>Marge</personaje>
+        <personaje>Moe</personaje>
+      </personajes>
+      <duracion unidad="segundos">10</duracion>
+    </escena>
+
+    <escena id="3">
+      <localizacion>Coche familiar</localizacion>
+      <personajes>
+        <personaje>Familia al completo</personaje>
+        <personaje>Bola de Nieve</personaje>
+        <personaje>Ayudante de Santa Claus</personaje>
+      </personajes>
+      <duracion unidad="segundos">5</duracion>
+    </escena>
+  </escenas>
+</capitulo>

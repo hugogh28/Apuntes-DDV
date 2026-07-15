@@ -1,0 +1,10 @@
+db.asignaturas.insertMany([
+  { nombre: "BD NoSQL", creditos: 6, curso: "4º" },
+  { nombre: "Programación", creditos: 6, curso: "1º" },
+  { nombre: "Estadística", creditos: 6, curso: "2º" },
+  { nombre: "Ingeniería SW", creditos: 6, curso: "3º" },
+  { nombre: "Redes", creditos: 6, curso: "3º" },
+  { nombre: "Big Data", creditos: 4, curso: "4º" },
+  { nombre: "Sistemas Distribuidos", creditos: 6, curso: "4º" },
+  { nombre: "Bases de Datos", creditos: 6, curso: "2º" }
+])

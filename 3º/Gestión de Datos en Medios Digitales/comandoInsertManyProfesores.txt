@@ -1,0 +1,9 @@
+db.profesores.insertMany([
+  { nombre: "Cristian", apellido: "Gomez",  edad: 35, codigo_postal: "28001", fecha_registro: ISODate("2024-01-15T10:23:00Z"), asignaturas: ["BD NoSQL"], activo: true },
+  { nombre: "Juan",     apellido: "Vara",   edad: 46, codigo_postal: "28001", fecha_registro: ISODate("2023-11-03T09:10:00Z"), asignaturas: ["BD NoSQL","Ingeniería SW"], activo: true },
+  { nombre: "Fran",     apellido: "Pérez",  edad: 29, codigo_postal: "28015", fecha_registro: ISODate("2024-03-22T14:45:00Z"), asignaturas: ["Programación"], activo: true },
+  { nombre: "Laura",    apellido: "Martínez", edad:27,codigo_postal:"28020", fecha_registro: ISODate("2022-09-10T08:00:00Z"), asignaturas: ["Estadística"], activo: true },
+  { nombre: "Miguel",   apellido: "Sánchez", edad:44,codigo_postal:"28005", fecha_registro: ISODate("2021-05-30T16:30:00Z"), asignaturas: ["Redes"], activo: false },
+  { nombre: "Fran",     apellido: "Pérez",  edad:32, codigo_postal:"28030", fecha_registro: ISODate("2023-02-17T12:15:00Z"), asignaturas: ["BD NoSQL"], activo: true },
+  { nombre: "Carmen",   apellido: "Santillana",  edad: 60, codigo_postal: "28015", fecha_registro: ISODate("2019-12-08T14:45:00Z"), asignaturas: ["Programación","Estadística"], activo: false }
+])
