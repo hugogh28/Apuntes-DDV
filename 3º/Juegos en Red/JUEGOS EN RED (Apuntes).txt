@@ -1,0 +1,24 @@
+JUEGOS EN RED
+
+-Presentación de la asignatura: https://rrunix.github.io/jer_slides/sub_introduction.html#/title-slide
+
+-Tema 1: 
+	* https://rrunix.github.io/jer_slides/ch1_p1_net_introduction.html#/title-slide
+
+	* https://rrunix.github.io/jer_slides/ch1_p2_access_layer.html#/title-slide
+
+	* https://rrunix.github.io/jer_slides/ch1_p3_network.html#/title-slide
+
+	* https://rrunix.github.io/jer_slides/ch1_p4_transport.html#/title-slide
+
+	* https://rrunix.github.io/jer_slides/ch1_p5_application.html#/title-slide
+-Tema 2:
+	* https://rrunix.github.io/jer_slides/ch2_p1_js.html#/title-slide
+
+	* https://rrunix.github.io/jer_slides/ch2_p2_js_classes.html#/title-slide
+
+	* https://rrunix.github.io/jer_slides/ch3_p1_phaser.html#/title-slide
+-Tema 3:
+	* https://rrunix.github.io/jer_slides/ch4_rest.html#/title-slide
+
+	* https://rrunix.github.io/jer_slides/ch5_websockets.html#/title-slide
